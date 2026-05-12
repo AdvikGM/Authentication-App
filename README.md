@@ -85,4 +85,3 @@ Displays registered usernames.
 
 
 
-MIT License
