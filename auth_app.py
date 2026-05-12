@@ -1,78 +1,171 @@
 import hashlib
 
-# Function to hash passwords
+FILE_NAME = "users.txt"
+
+
+# Hash password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-users = {
-    "Advik": hash_password("Advik876*)("),
-    "Shourya": hash_password("YuIOrt56%^&!@#"),
-    "Alex": hash_password("*HgjiKL"),
-    "God": hash_password("()&908!@#")
-}
+# Load users from file
+def load_users():
+    users = {}
+
+    try:
+        with open(FILE_NAME, "r") as file:
+
+            for line in file:
+                username, password = line.strip().split(",")
+
+                users[username] = password
+
+    except FileNotFoundError:
+        pass
+
+    return users
 
 
-def register_user(users, username, password):
+# Save users to file
+def save_users(users):
+
+    with open(FILE_NAME, "w") as file:
+
+        for username, password in users.items():
+            file.write(f"{username},{password}\n")
+
+
+# Register
+def register_user(users):
+
+    username = input("Enter username: ")
+    password = input("Enter password: ")
 
     if username in users:
-        return "Username already exists!"
+        print("Username already exists!")
+        return
 
     if len(password) < 6:
-        return "Password too short"
+        print("Password too short")
+        return
 
     users[username] = hash_password(password)
 
-    return "User registered successfully"
+    save_users(users)
+
+    print("User registered successfully")
 
 
-def login_user(users, username, password):
+# Login
+def login_user(users):
 
-    username = username.strip()
+    username = input("Enter username: ")
+    password = input("Enter password: ")
 
     if username not in users:
-        return "Username not found!"
+        print("Username not found!")
+        return
 
     if users[username] != hash_password(password):
-        return "Incorrect password"
+        print("Incorrect password")
+        return
 
-    return "Login successful"
+    print("Login successful")
 
 
-def change_password(users, username, old_password, new_password):
+# Change password
+def change_password(users):
+
+    username = input("Enter username: ")
+    old_password = input("Enter old password: ")
+    new_password = input("Enter new password: ")
 
     if username not in users:
-        return "Username not found!"
+        print("Username not found!")
+        return
 
     if users[username] != hash_password(old_password):
-        return "Old password incorrect"
+        print("Old password incorrect")
+        return
 
     if len(new_password) < 6:
-        return "New password too short"
+        print("New password too short")
+        return
 
     users[username] = hash_password(new_password)
 
-    return "Password updated successfully!"
+    save_users(users)
+
+    print("Password updated successfully!")
 
 
+# Delete account
+def delete_user(users):
+
+    username = input("Enter username: ")
+    password = input("Enter password: ")
+
+    if username not in users:
+        print("Username not found!")
+        return
+
+    if users[username] != hash_password(password):
+        print("Incorrect password")
+        return
+
+    del users[username]
+
+    save_users(users)
+
+    print("Account deleted successfully")
+
+
+# View users
 def view_users(users):
 
     if not users:
-        return "No users found"
+        print("No users found")
+        return
 
     print("\nRegistered Users:")
+
     for username in users:
         print(username)
 
 
-# TESTING
+# MAIN PROGRAM
+users = load_users()
 
-print(register_user(users, "Rahul", "Rahul123"))
-print(login_user(users, "Rahul", "Rahul123"))
-print(change_password(users, "Rahul", "Rahul123", "NewPass456"))
+while True:
 
-view_users(users)
+    print("\n=== AUTH SYSTEM ===")
+    print("1. Register")
+    print("2. Login")
+    print("3. Change Password")
+    print("4. Delete Account")
+    print("5. View Users")
+    print("6. Exit")
 
-# View hashed passwords
-print("\nStored Data:")
-print(users)
+    choice = input("Choose option: ")
+
+    if choice == "1":
+        register_user(users)
+
+    elif choice == "2":
+        login_user(users)
+
+    elif choice == "3":
+        change_password(users)
+
+    elif choice == "4":
+        delete_user(users)
+
+    elif choice == "5":
+        view_users(users)
+
+    elif choice == "6":
+        print("Goodbye!")
+        break
+
+    else:
+        print("Invalid option")
