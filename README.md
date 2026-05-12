@@ -15,6 +15,10 @@ This version improves security by hashing all passwords using SHA-256 before sto
 * SHA-256 Password Hashing
 * Duplicate Username Protection
 * Password Length Validation
+* File saving
+* Account deletion
+* Real login system
+* Persistent users after restart
 
 ---
 
