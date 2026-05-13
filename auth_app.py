@@ -1,41 +1,31 @@
 import hashlib
+import json
+import os
 
-FILE_NAME = "users.txt"
+FILE_NAME = "users.json"
 
 
-# Hash password
+
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# Load users from file
+
 def load_users():
-    users = {}
+    if not os.path.exists(FILE_NAME):
+        return {}
 
-    try:
-        with open(FILE_NAME, "r") as file:
-
-            for line in file:
-                username, password = line.strip().split(",")
-
-                users[username] = password
-
-    except FileNotFoundError:
-        pass
-
-    return users
+    with open(FILE_NAME, "r") as file:
+        return json.load(file)
 
 
-# Save users to file
+
 def save_users(users):
-
     with open(FILE_NAME, "w") as file:
-
-        for username, password in users.items():
-            file.write(f"{username},{password}\n")
+        json.dump(users, file, indent=4)
 
 
-# Register
+
 def register_user(users):
 
     username = input("Enter username: ")
@@ -49,14 +39,17 @@ def register_user(users):
         print("Password too short")
         return
 
-    users[username] = hash_password(password)
+    users[username] = {
+        "password": hash_password(password),
+        "locked": False,
+        "attempts": 0
+    }
 
     save_users(users)
+    print("User registered successfully!")
 
-    print("User registered successfully")
 
 
-# Login
 def login_user(users):
 
     username = input("Enter username: ")
@@ -64,16 +57,31 @@ def login_user(users):
 
     if username not in users:
         print("Username not found!")
-        return
+        return None
 
-    if users[username] != hash_password(password):
-        print("Incorrect password")
-        return
+    if users[username]["locked"]:
+        print("Account is locked!")
+        return None
 
-    print("Login successful")
+    if users[username]["password"] == hash_password(password):
+        print("Login successful!")
+        users[username]["attempts"] = 0
+        save_users(users)
+        return username
+
+    else:
+        print("Incorrect password!")
+        users[username]["attempts"] += 1
+
+        if users[username]["attempts"] >= 3:
+            users[username]["locked"] = True
+            print("Account locked due to too many attempts!")
+
+        save_users(users)
+        return None
 
 
-# Change password
+
 def change_password(users):
 
     username = input("Enter username: ")
@@ -84,7 +92,7 @@ def change_password(users):
         print("Username not found!")
         return
 
-    if users[username] != hash_password(old_password):
+    if users[username]["password"] != hash_password(old_password):
         print("Old password incorrect")
         return
 
@@ -92,14 +100,13 @@ def change_password(users):
         print("New password too short")
         return
 
-    users[username] = hash_password(new_password)
-
+    users[username]["password"] = hash_password(new_password)
     save_users(users)
 
     print("Password updated successfully!")
 
 
-# Delete account
+
 def delete_user(users):
 
     username = input("Enter username: ")
@@ -109,18 +116,17 @@ def delete_user(users):
         print("Username not found!")
         return
 
-    if users[username] != hash_password(password):
+    if users[username]["password"] != hash_password(password):
         print("Incorrect password")
         return
 
     del users[username]
-
     save_users(users)
 
-    print("Account deleted successfully")
+    print("Account deleted successfully!")
 
 
-# View users
+
 def view_users(users):
 
     if not users:
@@ -128,17 +134,17 @@ def view_users(users):
         return
 
     print("\nRegistered Users:")
-
     for username in users:
-        print(username)
+        status = "LOCKED" if users[username]["locked"] else "ACTIVE"
+        print(f"{username} - {status}")
 
 
-# MAIN PROGRAM
+
 users = load_users()
 
 while True:
 
-    print("\n=== AUTH SYSTEM ===")
+    print("\n=== AUTH SYSTEM  ===")
     print("1. Register")
     print("2. Login")
     print("3. Change Password")
