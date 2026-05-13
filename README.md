@@ -19,6 +19,10 @@ This version improves security by hashing all passwords using SHA-256 before sto
 * Account deletion
 * Real login system
 * Persistent users after restart
+* JSON storage
+* Login attempt tracking
+* Account locking
+  
 
 ---
 
